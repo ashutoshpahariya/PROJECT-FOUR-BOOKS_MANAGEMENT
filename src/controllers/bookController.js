@@ -4,6 +4,8 @@ const reviewModel = require('../models/reviewModel');
 const validateBody = require('../validation/validation');
 const ObjectId = require('mongoose').Types.ObjectId;
 
+
+//---------------------------THIRD API CREATE BOOKS
 const createBook = async (req, res) => {
     try {
         const myBody = req.body
@@ -36,7 +38,6 @@ const createBook = async (req, res) => {
         if (!validateBody.isValid(subcategory)) {
             return res.status(400).send({ status: false, message: "Please provide subcategory or subcategory field" });;
         }
-       
         const duplicateTitle = await bookModel.find({ title: title });
         const titleFound = duplicateTitle.length;
         if (titleFound != 0) {
@@ -52,7 +53,7 @@ const createBook = async (req, res) => {
         }
         else {
             let releasedAt = new Date()
-            let bookCreated = { title, excerpt, userId, ISBN, category, subcategory, releasedAt, reviews}
+            let bookCreated = { title, excerpt, userId, ISBN, category, subcategory, releasedAt, reviews }
             let savedData = await bookModel.create(bookCreated)
             return res.status(201).send({ status: true, message: 'Success', data: savedData });
         }
@@ -63,6 +64,7 @@ const createBook = async (req, res) => {
 }
 
 
+//---------------------------FOURTH API GET BOOKS BY QUERY
 const getQueryBooks = async (req, res) => {
     try {
         let myQuery = req.query;
@@ -89,7 +91,7 @@ const getQueryBooks = async (req, res) => {
     }
 }
 
-
+//---------------------------FIFTH API GET BOOKS BY PARAMS
 const getParamsBook = async (req, res) => {
     try {
         let paramsId = req.params.bookId
@@ -98,19 +100,21 @@ const getParamsBook = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please Provide a valid bookId in path params" });;
         }
         let checkParams = await bookModel.findOne({ _id: paramsId, isDeleted: false }).select({ ISBN: 0 });
+        //-----------DESTRUCTURING
+        const { _id, title, excerpt, userId, category, subcategory, reviews, isDeleted, deletedAt, releasedAt, createdAt, updatedAt } = checkParams
         if (!checkParams) {
             return res.status(404).send({ status: false, msg: "There is no book exist with this id" });
         }
-        const reviewData = await reviewModel.find({ bookId: paramsId, isDeleted: false }).select({ bookId: 1, reviewedBy: 1, reviewedAt: 1, rating: 1, review: 1 }); ////////
-        const response = { checkParams, reviewData }
-        return res.status(200).send({ status: true, message: 'Books list', data: response });
+        const reviewData = await reviewModel.find({ bookId: paramsId, isDeleted: false }).select({ bookId: 1, reviewedBy: 1, reviewedAt: 1, rating: 1, review: 1 });
+        const newData = { _id, title, excerpt, userId, category, subcategory, reviews, isDeleted, deletedAt, releasedAt, createdAt, updatedAt, reviewData }
+        return res.status(200).send({ status: true, message: 'Books list', data: newData });
     }
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message });
     }
 }
 
-
+//---------------------------SIXTH API UPDATE BOOKS BY PARAMS
 const updateBookById = async (req, res) => {
     try {
         let bookId = req.params.bookId;
@@ -123,13 +127,13 @@ const updateBookById = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please provide data to proceed your update request" });
         }
         const { title, excerpt, releasedAt, ISBN } = updateBody
-        if (!validateBody.isString(title)){
+        if (!validateBody.isString(title)) {
             return res.status(400).send({ status: false, message: "If you are providing title key you also have to provide its value" });
         }
-        if (!validateBody.isString(excerpt)){
+        if (!validateBody.isString(excerpt)) {
             return res.status(400).send({ status: false, message: "If you are providing excerpt key you also have to provide its value" });
         }
-        if (!validateBody.isString(ISBN)){
+        if (!validateBody.isString(ISBN)) {
             return res.status(400).send({ status: false, message: "If you are providing ISBN key you also have to provide its value" });
         }
         const duplicateTitle = await bookModel.find({ title: title });
@@ -172,6 +176,7 @@ const updateBookById = async (req, res) => {
 };
 
 
+//---------------------------SEVEN API DELETE BOOKS BY PARAMS
 const deleteBookById = async (req, res) => {
     try {
         let id1 = req.params.bookId;
@@ -183,8 +188,7 @@ const deleteBookById = async (req, res) => {
         if (!data) {
             return res.status(404).send({ status: false, message: "This Book id does not exits" });
         }
-        let id2 = data.userId;
-        if (req.userId == id2) {
+        if (req.userId == data.userId) {
             if (data.isDeleted == true) {
                 return res.status(400).send({ status: false, message: "This book has already been deleted" });
             }
@@ -208,16 +212,16 @@ module.exports.updateBookById = updateBookById;
 module.exports.deleteBookById = deleteBookById;
 
 
-
+//---------------------------selfTest----------------------------//
 const testBoookCount = async (req, res) => {
     try {
         let checkId = req.body.userId
         let totalCount = await bookModel.find({ userId: checkId }).count()
         let totalBook = await bookModel.find({ userId: checkId })
         if (totalCount) {
-            res.send({message: "success", data: {total_Boooks: totalCount, books_Are: totalBook}})
+            res.send({ message: "success", data: { total_Boooks: totalCount, books_Are: totalBook } })
         } else {
-            res.send({message: "no boook find"})
+            res.send({ message: "no boook find" })
         }
     }
     catch (err) {

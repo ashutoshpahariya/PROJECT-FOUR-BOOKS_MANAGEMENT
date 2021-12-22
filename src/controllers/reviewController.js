@@ -3,7 +3,7 @@ const reviewModel = require('../models/reviewModel');
 const validateBody = require('../validation/validation');
 const ObjectId = require('mongoose').Types.ObjectId;
 
-
+//---------------------------EIGHT API CREATE REVIEWS BY BOOKS ID IN PARAMS
 const createReview = async (req, res) => {
     try {
         const checkParams = req.params.bookId;
@@ -47,7 +47,7 @@ const createReview = async (req, res) => {
     }
 }
 
-
+//---------------------------NINTH API UPDATE REVIEWS BY BOOKS ID IN PARAMS
 const updateReview = async (req, res) => {
     try {
         const bookParams = req.params.bookId;
@@ -108,7 +108,7 @@ const updateReview = async (req, res) => {
     }
 }
 
-
+//---------------------------TENTH API DELETE REVIEWS BY BOOKS ID AND REVIEWS IN PARAMS
 const deleteReview = async (req, res) => {
     try {
         const booksParam = req.params.bookId;

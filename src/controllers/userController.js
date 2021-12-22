@@ -3,11 +3,13 @@ const validateBody = require('../validation/validation');
 const jwt = require("jsonwebtoken");
 
 
+//---------------------------FIRST API CREATE USER
 const userRegistration = async (req, res) => {
     try {
         const myBody = req.body
         const { title, name, phone, email, password, address } = myBody;
 
+        //-----------VALIDATION STARTS
         if (!validateBody.isValidRequestBody(myBody)) {
             return res.status(400).send({ status: false, message: "Please provide data for successful registration" });
         }
@@ -51,7 +53,8 @@ const userRegistration = async (req, res) => {
             if (duplicatePhone) {
                 return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
             }
-        }
+        }//------VALIDATION ENDS
+
         let registration = { title, name, phone, email, password, address }
         const userData = await userModel.create(registration);
         return res.status(201).send({ status: true, message: 'Success', data: userData });
@@ -61,7 +64,7 @@ const userRegistration = async (req, res) => {
     }
 }
 
-
+//---------------------------SECOND API USER LOGIN
 const userLogin = async (req, res) => {
     try {
         const myBody1 = req.body
