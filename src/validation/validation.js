@@ -36,6 +36,10 @@ let alphabetTestOfString = function (value) {
     }
     return true
 }
+//--------------ISVALIDTITLE FUNCTION 
+const isValidTitle = function (title) {
+    return ['Mr', 'Mrs', 'Miss'].indexOf(title) !== -1
+}
 
 
 module.exports = {
@@ -44,5 +48,6 @@ module.exports = {
     isValidSyntaxOfEmail,
     isValidMobileNum,
     alphabetTestOfString,
-    isString
+    isString,
+    isValidTitle
 }

@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken')
 
+
 //-----------------------------------------------------------------------------//
+
 
 const getUserDetails = async function (req, res, next) {
     try {
@@ -19,6 +21,7 @@ const getUserDetails = async function (req, res, next) {
         return res.status(500).send({ status: false, msg: error.message })
     }
 }
+
 
 //-----------------------------------------------------------------------------//
 module.exports.getUserDetails = getUserDetails;

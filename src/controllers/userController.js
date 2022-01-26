@@ -3,6 +3,7 @@ const validateBody = require('../validation/validation');
 const jwt = require("jsonwebtoken");
 
 
+
 //---------------------------FIRST API CREATE USER
 const userRegistration = async (req, res) => {
     try {
@@ -14,7 +15,12 @@ const userRegistration = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please provide data for successful registration" });
         }
         if (!validateBody.isValid(title)) {
-            return res.status(400).send({ status: false, message: "Please provide tittle or title field" });
+            return res.status(400).send({ status: false, message: "Please provide title or title field" });
+        }
+
+        if (!validateBody.isValidTitle(title.trim())) {
+            res.status(400).send({ status: false, message: "Title should be among  Mr, Mrs, Miss" })
+            return
         }
         if (!validateBody.isValid(name)) {
             return res.status(400).send({ status: false, message: "Please provide name or name field" });
@@ -25,35 +31,47 @@ const userRegistration = async (req, res) => {
         if (!validateBody.isValid(phone)) {
             return res.status(400).send({ status: false, message: "Please provide phone number or phone field" });
         }
-        if(!(/^[6-9]\d{9}$/.test(phone.trim()))){
-            return res.status(400).send({ status: false, message: 'Please provide a valid phone number.' })
+        if (!(/^[6-9]\d{9}$/.test(phone.trim()))) {
+            return res.status(400).send({ status: false, message: "Please provide a valid phone number" });
+        }
+        const duplicatePhone = await userModel.findOne({ phone: phone })
+        if (duplicatePhone) {
+            return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
         }
         if (!validateBody.isValid(email)) {
-            return res.status(400).send({ status: false, message: "Please provide Email id or email field" });;
+            return res.status(400).send({ status: false, message: "Please provide Email id or Email field" });
         }
         if (!validateBody.isValidSyntaxOfEmail(email)) {
             return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
         }
+        const isEmailAlreadyUsed = await userModel.findOne({ email: email });
+        if (isEmailAlreadyUsed) {
+            res.status(400).send({ status: false, message: "Email address is already registered,Try different One" })
+            return
+        }
         if (!validateBody.isValid(password)) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
         }
-        let size = Object.keys(password.trim()).length
-        if (size < 8 || size > 15) {
-            return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 14 characters" });;
+        if (!(password.trim().length >= 8 && password.trim().length <= 15)) {
+            return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 15 characters" });;
         }
-        let isDBexists = await userModel.find();
-        let dbLen = isDBexists.length
-        if (dbLen != 0) {
-            const DuplicateEmail = await userModel.find({ email: email });
-            const emailFound = DuplicateEmail.length;
-            if (emailFound != 0) {
-                return res.status(400).send({ status: false, message: "This email Id already exists with another user" });
+        if (address) {
+            if (!validateBody.isString(address.street)) {
+                return res.status(400).send({ status: false, message: "If you are providing Address Street key you also have to provide its value" });
             }
-            const duplicatePhone = await userModel.findOne({ phone: phone })
-            if (duplicatePhone) {
-                return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
+        }
+        if (address) {
+            if (!validateBody.isString(address.city)) {
+                return res.status(400).send({ status: false, message: "If you are providing Address City key you also have to provide its value" });
             }
-        }//------VALIDATION ENDS
+        }
+        if (address) {
+            if (!validateBody.isString(address.pincode)) {
+                return res.status(400).send({ status: false, message: "If you are providing Address Pincode key you also have to provide its value" });
+            }
+        }
+
+        //------VALIDATION ENDS
 
         let registration = { title, name, phone, email, password, address }
         const userData = await userModel.create(registration);
@@ -64,6 +82,7 @@ const userRegistration = async (req, res) => {
     }
 }
 
+
 //---------------------------SECOND API USER LOGIN
 const userLogin = async (req, res) => {
     try {
@@ -73,10 +92,10 @@ const userLogin = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please provide data for successful login" });
         }
         if (!validateBody.isValid(email)) {
-            return res.status(400).send({ status: false, message: "Please provide Email id or email field" });;
+            return res.status(400).send({ status: false, message: "Please provide email id or email field" });;
         }
         if (!validateBody.isValidSyntaxOfEmail(email)) {
-            return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
+            return res.status(400).send({ status: false, message: "Please provide a valid Email Id" });
         }
         if (!validateBody.isValid(password)) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
@@ -85,6 +104,7 @@ const userLogin = async (req, res) => {
         if (user) {
             const { _id, name, phone } = user
             let payload = { userId: _id, email: email, phone: phone };
+
             const generatedToken = jwt.sign(payload, "functionupridersprivatekey", { expiresIn: '180m' });
             res.header('user-login-key', generatedToken);
             return res.status(200).send({
@@ -101,5 +121,5 @@ const userLogin = async (req, res) => {
 };
 
 
-module.exports.userRegistration = userRegistration;
-module.exports.userLogin = userLogin;
+module.exports.userRegistration = userRegistration
+module.exports.userLogin = userLogin
