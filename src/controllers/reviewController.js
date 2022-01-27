@@ -3,6 +3,7 @@ const reviewModel = require('../models/reviewModel');
 const validateBody = require('../validation/validation');
 const ObjectId = require('mongoose').Types.ObjectId;
 
+
 //---------------------------EIGHT API CREATE REVIEWS BY BOOKS ID IN PARAMS
 const createReview = async (req, res) => {
     try {
@@ -11,12 +12,9 @@ const createReview = async (req, res) => {
         if (!checkOBJ) {
             return res.status(400).send({ status: false, message: "Please Provide a valid bookId in path params" });;
         }
-        const findBook = await bookModel.findOne({ _id: checkParams });
+        const findBook = await bookModel.findOne({ _id: checkParams ,isDeleted:false});
         if (!findBook) {
-            return res.status(400).send({ status: false, msg: "This BookId deosn't exist" });
-        }
-        if (findBook.isDeleted == true) {
-            return res.status(400).send({ status: false, msg: "The book on which you want to make review is no longer exist" });
+            return res.status(400).send({ status: false, msg: "This BookId deosn't exist or its deleted" });
         }
         const { _id, reviews } = findBook
         const myBody = req.body

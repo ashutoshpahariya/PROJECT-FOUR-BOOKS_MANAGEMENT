@@ -14,7 +14,7 @@ const createBook = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please provide body for successful creation" });
         }
         if (!validateBody.isValid(title)) {
-            return res.status(400).send({ status: false, message: "Please provide tittle or title field" });
+            return res.status(400).send({ status: false, message: "Please provide title or title field" });
         }
         const duplicateTitle = await bookModel.findOne({ title: title });
         if (duplicateTitle) {
@@ -110,11 +110,10 @@ const getParamsBook = async (req, res) => {
 
         let checkParams = await bookModel.findOne({ _id: paramsId, isDeleted: false }).select({ ISBN: 0 });
         //-----------DESTRUCTURING
-        const { _id, title, excerpt, userId, category, subcategory, reviews, isDeleted, deletedAt, releasedAt, createdAt, updatedAt } = checkParams
         if (!checkParams) {
-            return res.status(404).send({ status: false, msg: "There is no book exist with this id" });
+            return res.status(404).send({ status: false, msg: "There is no book exist with this id or its deleted" });
         }
-
+      const  { _id, title, excerpt, userId, category, subcategory, reviews, isDeleted, deletedAt, releasedAt, createdAt, updatedAt } = checkParams
         const reviewData = await reviewModel.find({ bookId: paramsId, isDeleted: false }).select({ bookId: 1, reviewedBy: 1, reviewedAt: 1, rating: 1, review: 1 });
 
         const newData = { _id, title, excerpt, userId, category, subcategory, reviews, isDeleted, deletedAt, releasedAt, createdAt, updatedAt, reviewData }
@@ -143,11 +142,9 @@ const updateBookById = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please provide data to proceed your update request" });
         }
         const { title, excerpt, releasedAt, ISBN } = updateBody
-        let data = await bookModel.findOne({ _id: bookId });
+        let data = await bookModel.findOne({ _id: bookId ,isDeleted:false});
         if (!data) {
-            return res.status(404).send({ status: false, message: "This bookId does not exist" });
-        }if (data.isDeleted == true) { 
-            return res.status(404).send({ status: false, message: "This book is no longer exists" });
+            return res.status(404).send({ status: false, message: "This bookId does not exist or its deleted" });
         }
         if (!validateBody.isString(title)) {
             return res.status(400).send({ status: false, message: "If you are providing title key you also have to provide its value" });
@@ -190,15 +187,11 @@ const deleteBookById = async (req, res) => {
         if (!checkOBJ2) {
             return res.status(400).send({ status: false, message: "Please Provide a valid bookId in path params" });;
         }
-        let data = await bookModel.findOne({ _id: id1 });
+        let data = await bookModel.findOne({ _id: id1 , isDeleted:false });
         if (!data) {
-            return res.status(404).send({ status: false, message: "This Book id does not exits" });
+            return res.status(404).send({ status: false, message: "This Book id does not exits or its deleted" });
         }
         if (req.userId == data.userId) {
-            if (data.isDeleted == true) {
-                return res.status(400).send({ status: false, message: "This book has already been deleted" });
-            }
-            
             data.isDeleted = true;
             data.deletedAt = Date();
             data.save();
